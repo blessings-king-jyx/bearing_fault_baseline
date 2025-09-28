@@ -5,11 +5,11 @@ class Config:
     """实验配置 - 基线模型 exp_001"""
 
     # 实验信息
-    experiment_id = "exp_001_baseline"
+    experiment_id = "exp_003_baseline(12D.1750)"
     description = "基线模型：简单CNN，CWRU数据，时频图输入"
 
     # 数据配置
-    data_path = r"D:\bearing_fault_baseline\data\1730"  # 你需要下载CWRU数据放到这个路径
+    data_path = r"D:\bearing_fault_baseline\data\1750"  # 你需要下载CWRU数据放到这个路径
     sampling_rate = 12000  # CWRU数据的采样率
     signal_length = 1024  # 每个样本的信号长度
     train_ratio = 0.7
