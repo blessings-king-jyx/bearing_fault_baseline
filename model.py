@@ -3,16 +3,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class SimpleCNN(nn.Module):
+class ImprovedCNN(nn.Module):
     """简单的CNN基线模型 - 动态计算全连接层尺寸"""
 
     def __init__(self, num_classes=4):
-        super(SimpleCNN, self).__init__()
+        super(ImprovedCNN, self).__init__()
 
         # 卷积层
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
 
         # 池化层
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -20,10 +23,14 @@ class SimpleCNN(nn.Module):
         # 自适应池化层
         self.adaptive_pool = nn.AdaptiveAvgPool2d((8, 8))
 
+        # 增加Dropout概率
+        self.dropout = nn.Dropout(0.6)  # 从0.5提高到0.6
+
+
         # 先不定义fc1，在第一次前向传播时动态创建
         self.fc1 = None
         self.fc2 = nn.Linear(512, num_classes)
-        self.dropout = nn.Dropout(0.5)
+
 
     def forward(self, x):
         # 卷积层
@@ -53,7 +60,7 @@ class SimpleCNN(nn.Module):
 
 def test_model_shape():
     """测试模型输入输出形状"""
-    model = SimpleCNN(num_classes=4)
+    model = ImprovedCNN(num_classes=4)
     x = torch.randn(32, 1, 65, 33)
     output = model(x)
     print(f"输入: {x.shape} -> 输出: {output.shape}")

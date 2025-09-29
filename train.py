@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classifi
 
 from config import Config
 from data_loader import get_data_loaders, visualize_sample
-from model import SimpleCNN
+from model import ImprovedCNN
 
 
 class Trainer:
@@ -22,7 +22,7 @@ class Trainer:
         os.makedirs(config.save_dir, exist_ok=True)
 
         # 初始化模型
-        self.model = SimpleCNN(num_classes=config.num_classes).to(self.device)
+        self.model = ImprovedCNN(num_classes=config.num_classes).to(self.device)
 
         # 损失函数和优化器
         self.criterion = nn.CrossEntropyLoss()
@@ -205,7 +205,7 @@ def debug_pipeline():
             break
 
         # 测试模型
-        model = SimpleCNN(num_classes=config.num_classes)
+        model = ImprovedCNN(num_classes=config.num_classes)
         print(f"\n模型参数总数: {sum(p.numel() for p in model.parameters()):,}")
 
         # 前向传播测试

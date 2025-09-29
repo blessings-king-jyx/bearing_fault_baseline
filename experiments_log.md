@@ -66,4 +66,25 @@
       Train Loss: 0.3029 | Train Acc: 80.73%
       Val Loss: 0.3323 | Val Acc: 73.29% | Val F1: 0.7462
  
+# 第四次实验
+      实验概览
+      exp_004\2025.9.29\把简单CNN模型增加了dropout和batchnorm
 
+     实验详情
+      第一轮
+      Train Loss: 1.3596 | Train Acc: 36.50%
+      Val Loss: 1.3658 | Val Acc: 36.80% | Val F1: 0.1979
+      新的最佳模型已保存! 验证准确率: 36.80%
+      第四轮
+       Train Loss: 0.7819 | Train Acc: 67.44%
+       Val Loss: 0.6010 | Val Acc: 72.70% | Val F1: 0.6729
+       新的最佳模型已保存! 验证准确率: 72.70%
+       最后一轮
+       Train Loss: 0.3105 | Train Acc: 81.24%
+       Val Loss: 0.3320 | Val Acc: 71.36% | Val F1: 0.7248
+
+      实验分析
+      feat:较与第三次实验，简单CNN模型增加了batchnorm
+      并把dropout=0.5改为0.6，效果依旧不理想，
+      验证准确率和训练准确率差距将近10%，明显存在过拟合，泛化能力不足
+      下一步，加入处理数据集类别不平衡下的处理方法，看是否有效果。
