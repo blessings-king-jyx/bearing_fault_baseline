@@ -6,6 +6,7 @@ from scipy import io
 import scipy.signal as signal
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE  # 新增导入
 
 
 class CWRUDataset(Dataset):
@@ -123,13 +124,44 @@ def load_cwru_data(data_path):
     print(f"Total samples: {len(signals)}, Labels distribution: {np.bincount(labels)}")
     return np.array(signals), np.array(labels)
 
-    return np.array(signals), np.array(labels)
+
+def apply_smote_oversampling(signals, labels, random_state=42):
+    """
+    应用SMOTE过采样处理类别不平衡
+    新增函数 - 在数据划分前应用
+    """
+    print("=== 应用SMOTE过采样 ===")
+
+    # 原始数据分布
+    original_distribution = np.bincount(labels)
+    print(f"过采样前类别分布: {original_distribution}")
+
+    # 将信号数据重塑为2D (n_samples, n_features)
+    signals_2d = signals.reshape(signals.shape[0], -1)
+
+    # 应用SMOTE
+    smote = SMOTE(random_state=random_state)
+    signals_resampled, labels_resampled = smote.fit_resample(signals_2d, labels)
+
+    # 重塑回原始信号形状
+    signals_resampled = signals_resampled.reshape(-1, *signals.shape[1:])
+
+    # 过采样后分布
+    new_distribution = np.bincount(labels_resampled)
+    print(f"过采样后类别分布: {new_distribution}")
+    print(f"总样本数: {len(signals_resampled)} (增加了 {len(signals_resampled) - len(signals)} 个样本)")
+
+    return signals_resampled, labels_resampled
 
 
 def get_data_loaders(config):
-    """获取数据加载器"""
+    """获取数据加载器 - 修改此函数以支持SMOTE"""
     # 加载数据
     signals, labels = load_cwru_data(config.data_path)
+
+    # 新增：在数据划分前应用SMOTE
+    if hasattr(config, 'use_smote') and config.use_smote:
+        signals, labels = apply_smote_oversampling(signals, labels)
 
     # 划分训练集、验证集、测试集
     X_temp, X_test, y_temp, y_test = train_test_split(

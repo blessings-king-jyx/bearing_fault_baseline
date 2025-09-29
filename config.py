@@ -4,6 +4,8 @@ import torch
 class Config:
     """实验配置 - 基线模型 exp_001"""
 
+    use_smote = True
+
     # 实验信息
     experiment_id = "exp_003_baseline(12D.1750)"
     description = "基线模型：简单CNN，CWRU数据，时频图输入"
