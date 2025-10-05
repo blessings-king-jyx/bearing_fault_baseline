@@ -28,6 +28,11 @@ class Config:
     learning_rate = 0.001
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Focal Loss配置（新增）
+    use_focal_loss = True  # 是否使用Focal Loss
+    focal_gamma = 2.0  # Focal Loss的gamma参数
+    focal_alpha = None  # 可以设置为None或具体的类别权重
+
     # 日志和保存
     save_dir = "./results"
     log_interval = 10  # 每10个batch打印一次日志

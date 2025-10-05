@@ -58,6 +58,39 @@ class ImprovedCNN(nn.Module):
         return x
 
 
+class FocalLoss(nn.Module):
+    """Focal Loss用于处理类别不平衡问题"""
+
+    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+        """
+        Args:
+            alpha: 类别权重，可以是一个tensor或None
+            gamma: 调节因子，gamma越大，对难分类样本的关注度越高
+            reduction: 损失 reduction 方式
+        """
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, inputs, targets):
+        # 计算交叉熵损失
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
+
+        # 计算概率
+        pt = torch.exp(-ce_loss)
+
+        # 计算focal loss
+        focal_loss = ((1 - pt) ** self.gamma) * ce_loss
+
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        else:
+            return focal_loss
+
+
 def test_model_shape():
     """测试模型输入输出形状"""
     model = ImprovedCNN(num_classes=4)

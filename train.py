@@ -45,13 +45,30 @@ class Trainer:
         # 初始化模型
         self.model = ImprovedCNN(num_classes=config.num_classes).to(self.device)
 
-        # 损失函数和优化器 - 添加类别权重
-        if class_weights is not None:
-            class_weights = class_weights.to(self.device)
-            print(f"使用类别权重: {class_weights}")
-            self.criterion = nn.CrossEntropyLoss(weight=class_weights)
+        # 损失函数和优化器 - 添加Focal Loss支持
+        if hasattr(config, 'use_focal_loss') and config.use_focal_loss:
+            # 使用Focal Loss
+            if class_weights is not None:
+                class_weights = class_weights.to(self.device)
+                print(f"使用Focal Loss (gamma={config.focal_gamma})，类别权重: {class_weights}")
+            else:
+                print(f"使用Focal Loss (gamma={config.focal_gamma})")
+
+            # 从model模块导入FocalLoss
+            from model import FocalLoss
+            self.criterion = FocalLoss(
+                alpha=class_weights,
+                gamma=config.focal_gamma,
+                reduction='mean'
+            )
         else:
-            self.criterion = nn.CrossEntropyLoss()
+            # 使用传统的CrossEntropyLoss
+            if class_weights is not None:
+                class_weights = class_weights.to(self.device)
+                print(f"使用带权重的CrossEntropy Loss: {class_weights}")
+                self.criterion = nn.CrossEntropyLoss(weight=class_weights)
+            else:
+                self.criterion = nn.CrossEntropyLoss()
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
 
