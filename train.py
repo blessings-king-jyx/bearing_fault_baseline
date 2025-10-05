@@ -13,8 +13,29 @@ from data_loader import get_data_loaders, visualize_sample
 from model import ImprovedCNN
 
 
+def calculate_class_weights(train_loader, num_classes):
+    """计算类别权重来处理数据不平衡"""
+    # 统计每个类别的样本数
+    class_counts = torch.zeros(num_classes)
+
+    for _, labels in train_loader:
+        for i in range(num_classes):
+            class_counts[i] += (labels == i).sum()
+
+    print(f"各类别样本数量: {class_counts.tolist()}")
+
+    # 计算权重（使用逆频率加权）
+    total_samples = class_counts.sum()
+    class_weights = total_samples / (num_classes * class_counts)
+
+    # 归一化权重
+    class_weights = class_weights / class_weights.sum() * num_classes
+
+    return class_weights
+
+
 class Trainer:
-    def __init__(self, config):
+    def __init__(self, config, class_weights=None):
         self.config = config
         self.device = config.device
 
@@ -24,8 +45,14 @@ class Trainer:
         # 初始化模型
         self.model = ImprovedCNN(num_classes=config.num_classes).to(self.device)
 
-        # 损失函数和优化器
-        self.criterion = nn.CrossEntropyLoss()
+        # 损失函数和优化器 - 添加类别权重
+        if class_weights is not None:
+            class_weights = class_weights.to(self.device)
+            print(f"使用类别权重: {class_weights}")
+            self.criterion = nn.CrossEntropyLoss(weight=class_weights)
+        else:
+            self.criterion = nn.CrossEntropyLoss()
+
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate)
 
         # 学习率调度器
@@ -167,11 +194,16 @@ def main():
         print(f"验证样本数: {len(val_loader.dataset)}")
         print(f"测试样本数: {len(test_loader.dataset)}")
 
+        # 计算类别权重
+        print("计算类别权重...")
+        class_weights = calculate_class_weights(train_loader, config.num_classes)
+        print(f"类别权重: {class_weights}")
+
         # 可视化一个样本（可选）
         visualize_sample(train_loader, config)
 
-        # 创建训练器并开始训练
-        trainer = Trainer(config)
+        # 创建训练器并开始训练（传入类别权重）
+        trainer = Trainer(config, class_weights=class_weights)
         train_history, val_history = trainer.train(train_loader, val_loader)
 
         print("训练完成!")
@@ -180,6 +212,7 @@ def main():
         print(f"训练过程中出现错误: {e}")
         import traceback
         traceback.print_exc()
+
 
 
 # 添加一个调试脚本来检查数据流
