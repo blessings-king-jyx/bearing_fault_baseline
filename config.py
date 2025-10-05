@@ -1,6 +1,4 @@
 import torch
-
-
 class Config:
     """实验配置 - 基线模型 exp_001"""
 

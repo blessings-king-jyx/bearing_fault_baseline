@@ -256,6 +256,82 @@ def debug_pipeline():
         traceback.print_exc()
 
 
+# 在 train.py 文件末尾添加以下代码
+
+def visualize_results(train_history, val_history, test_loader, trainer, config):
+    """训练完成后可视化结果"""
+    from utils import plot_training_history, plot_confusion_matrix, print_classification_report
+
+    # 绘制训练历史
+    plot_training_history(train_history, val_history,
+                          save_path=f'{config.save_dir}/training_history.png')
+
+    # 在测试集上评估并绘制混淆矩阵
+    print("\n=== 在测试集上评估模型 ===")
+    trainer.model.eval()
+    all_preds = []
+    all_targets = []
+
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(config.device), target.to(config.device)
+            output = trainer.model(data)
+            _, predicted = output.max(1)
+            all_preds.extend(predicted.cpu().numpy())
+            all_targets.extend(target.cpu().numpy())
+
+    # 类别名称
+    class_names = ['正常', '球故障', '内圈故障', '外圈故障']
+
+    # 绘制混淆矩阵
+    plot_confusion_matrix(all_targets, all_preds, class_names,
+                          save_path=f'{config.save_dir}/confusion_matrix.png')
+
+    # 打印分类报告
+    print_classification_report(all_targets, all_preds, class_names)
+
+
+# 修改 main 函数，在训练完成后调用可视化
+def main():
+    # 加载配置
+    config = Config()
+
+    try:
+        # 获取数据加载器
+        train_loader, val_loader, test_loader = get_data_loaders(config)
+
+        # 检查数据是否加载成功
+        if len(train_loader.dataset) == 0:
+            print("错误：没有加载到任何训练数据！")
+            return
+
+        print(f"训练样本数: {len(train_loader.dataset)}")
+        print(f"验证样本数: {len(val_loader.dataset)}")
+        print(f"测试样本数: {len(test_loader.dataset)}")
+
+        # 计算类别权重
+        print("计算类别权重...")
+        class_weights = calculate_class_weights(train_loader, config.num_classes)
+        print(f"类别权重: {class_weights}")
+
+        # 可视化一个样本（可选）
+        visualize_sample(train_loader, config)
+
+        # 创建训练器并开始训练（传入类别权重）
+        trainer = Trainer(config, class_weights=class_weights)
+        train_history, val_history = trainer.train(train_loader, val_loader)
+
+        # 新增：训练完成后可视化结果
+        visualize_results(train_history, val_history, test_loader, trainer, config)
+
+        print("训练完成!")
+
+    except Exception as e:
+        print(f"训练过程中出现错误: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     # 可以选择运行调试或正式训练
     choice = input("请选择模式 (1-调试 2-训练): ").strip()
